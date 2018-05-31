@@ -188,8 +188,9 @@ total_width += sum(row_maxwidth)
 total_height = 2.0 * row_margin
 total_height += max(nrow) * font_height
 maxpect = min(width / total_width, height / total_height)
-print(width, total_width, height, total_height, maxpect)
 ctx.scale(maxpect, maxpect)
+width /= maxpect
+height /= maxpect
 
 def draw_rect(ctx, width, height):
     ctx.rel_line_to(0, height)
@@ -197,13 +198,18 @@ def draw_rect(ctx, width, height):
     ctx.rel_line_to(0, -height)
     ctx.rel_line_to(-width, 0)
 
-# Try out some actual rendering, finally.
-col_height = max(nrow) * font_height
+# Show a frame.
 ctx.move_to(col_margin, row_margin)
-draw_rect(ctx, row_maxwidth[0], col_height)
-for i in range(1, ncols):
-    ctx.rel_move_to(row_maxwidth[i-1] + gutter_width,0)
+draw_rect(ctx, width - 2 * col_margin,
+          height - 2 * row_margin)
+
+# Try out some actual rendering, finally.
+next_x = col_margin
+for i in range(0, ncols):
+    col_height = nrow[i] * font_height
+    ctx.move_to(next_x, (height - col_height) / 2.0)
     draw_rect(ctx, row_maxwidth[i], col_height)
+    next_x += row_maxwidth[i] + gutter_width
 
 # Get the rendering out.
 ctx.set_source_rgb(0.5, 0.5, 0.5)
