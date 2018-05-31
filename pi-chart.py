@@ -16,7 +16,7 @@ SIDE = 8.5 * 72
 # Aspect ratio of drawing, width / height.
 ASPECT = 11.0 / 8.5
 # Leading ratio for font
-LEADING = 1.8
+LEADING = 3.0
 # Line X margin in display units.
 LINE_MARGIN = 5
 
@@ -183,7 +183,7 @@ ctx.set_line_width(1.2)
 # Set up column widths and heights.
 col_margin = 0.05 * width
 row_margin = 0.05 * height
-gutter_width = 0.05 * width
+gutter_width = 0.15 * width
 ncols = len(mat_tiers)
 row_maxwidth = [None] * ncols
 nrow = [None] * ncols
