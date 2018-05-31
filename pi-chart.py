@@ -82,7 +82,7 @@ for tid in pms:
 
 # Debugging: show schematic info
 if False:
-    for tid in schtypes:
+    for tid in pms:
         (tier, pm) = pms[tid]
         print("name", pm["typeName"])
         print("tier", tier)
@@ -98,14 +98,18 @@ if False:
         print()
     exit(0)
 
+# Consolidate all the retrieved data.
 tiers = list()
 for t in range(len(pmTiers)):
     mats = list()
-    for p in schtypes:
-        (schtype, inputs) = schtypes[p]
-        (tier, pm) = pms[schtype["typeID"]]
+    for p in pms:
+        (tier, pm) = pms[p]
         if t != tier:
             continue
+        if t == 0:
+            mats.append((pm, None, []))
+            continue
+        (schtype, inputs) = schtypes[p]
         mats.append((pm, schtype, inputs))
     mats.sort(key=(lambda info: info[0]["typeName"]))
     tiers += [mats]
