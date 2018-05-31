@@ -11,17 +11,20 @@
 # Location of SDE database.
 eveSDE = "sde.sqlite"
 
+# Short side of drawing in pixels.
+SIDE = 11*96
+# Aspect ratio of drawing, width / height.
+ASPECT = 11.0 / 8.5
+
 import sqlite3
+import cairo
 
+# Set up SQLite3.
 db = sqlite3.connect(eveSDE)
-
-def makeCursor():
-    c = db.cursor()
-    c.row_factory = sqlite3.Row
-    return c
+c = db.cursor()
+c.row_factory = sqlite3.Row
 
 # Collect information about planetary materials from the SDE.
-c = makeCursor()
 
 # Get the marketGroupID for planetary materials.
 c.execute("""SELECT marketGroupID FROM invMarketGroups
@@ -118,7 +121,53 @@ for t in range(len(pmTiers)):
     mats.sort(key=(lambda info: info[0]["typeName"]))
     tiers += [mats]
 
+# Debugging: show tiers
+if False:
+    for t in range(len(tiers)):
+        print("tier", t)
+        for m in tiers[t]:
+            print(" ", m[0]["typeName"])
+    exit(0)
+
+# Accumulate PI materials in a form
+# ready for drawing.
+mats = dict()
+mat_tiers = [[] for _ in range(len(tiers))]
+class Mat(object):
+    "PI material in drawing."
+    
+    def __init__(self, tier, tid, name, inputs):
+        self.tier = tier
+        self.tid = tid
+        self.name = name
+        self.inputs = inputs
+        self.x = None
+        self.y = None
+
 for t in range(len(tiers)):
-    print("tier", t)
-    for m in tiers[t]:
-        print(" ", m[0]["typeName"])
+    for pm, _, inputs  in tiers[t]:
+        mat = Mat(t, pm["typeID"], pm["typeName"], inputs)
+        mats[tid] = mat
+        mat_tiers[tier] = tid
+
+# Set up Cairo for drawing. Origin is in lower-left corner.
+# width is ASPECT, Height is 1.0.
+height = SIDE
+width = round(ASPECT * SIDE)
+surface = cairo.SVGSurface("pi-map.svg", width, height)
+ctx = cairo.Context(surface)
+ctx.scale(height, height)
+
+# Set up column widths and heights.
+col_margin = 0.05
+row_margin = col_margin
+ncols = len(tiers)
+row_maxname = [None] * ncols
+nrow = [0] * ncols
+for i in range(ncols):
+    tier = tiers[i]
+    nrow[i] = len(tier)
+    # XXX For simplicity, we assume that the widest label in
+    # chars will be the widest label in the eventual
+    # rendered font. This may be wrong by a bit.
+    maxname = 0
