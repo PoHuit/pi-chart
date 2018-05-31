@@ -17,6 +17,8 @@ SIDE = 8.5 * 72
 ASPECT = 11.0 / 8.5
 # Leading ratio for font
 LEADING = 1.8
+# Line X margin in display units.
+LINE_MARGIN = 5
 
 import sqlite3, cairo, math, random
 
@@ -276,8 +278,10 @@ for i in range(1, ncols):
         m = mats[mid]
         for iid in m.inputs:
             inp = mats[iid]
-            ctx.move_to(m.x, m.y)
-            ctx.line_to(inp.x + inp.width, inp.y)
+            ctx.move_to(m.x - LINE_MARGIN,
+                        m.y - font_ascent / 2)
+            ctx.line_to(inp.x + inp.width + LINE_MARGIN,
+                        inp.y - font_ascent / 2)
         set_next_color(ctx, c)
         ctx.stroke()
         c += 1
