@@ -12,7 +12,7 @@
 eveSDE = "sde.sqlite"
 
 # Short side of drawing in pixels.
-SIDE = 11*96
+SIDE = 8.5 * 72
 # Aspect ratio of drawing, width / height.
 ASPECT = 11.0 / 8.5
 
