@@ -15,6 +15,8 @@ eveSDE = "sde.sqlite"
 SIDE = 8.5 * 72
 # Aspect ratio of drawing, width / height.
 ASPECT = 11.0 / 8.5
+# Leading ratio for font
+LEADING = 1.8
 
 import sqlite3
 import cairo
@@ -166,8 +168,7 @@ for t in range(len(tiers)):
         mats[tid] = mat
         mat_tiers[t].append(mat.tid)
 
-# Set up Cairo for drawing. Origin is in lower-left corner.
-# width is ASPECT, Height is 1.0.
+# Set up Cairo for drawing. Origin is in upper-left corner.
 height = SIDE
 width = round(ASPECT * SIDE)
 surface = cairo.SVGSurface("pi-chart.svg", width, height)
@@ -185,18 +186,22 @@ ncols = len(mat_tiers)
 row_maxwidth = [None] * ncols
 nrow = [None] * ncols
 font_height = 0.0
+font_ascent = 0.0
 for i in range(ncols):
     mat_tier = mat_tiers[i]
     max_width = 0.0
     acc_height = None
     nrow[i] = len(mat_tier)
     for t in mat_tier:
-        name = mats[t].name
+        m = mats[t]
+        name = m.name
         extents = ctx.text_extents(name)
+        m.width = extents.width
         font_height = max(font_height, extents.height)
+        font_ascent = max(font_ascent, -extents.y_bearing)
         max_width = max(max_width, extents.width)
     row_maxwidth[i] = max_width
-font_height *= 1.2
+font_height *= LEADING
 total_width = 2.0 * col_margin
 total_width += (ncols - 1) * gutter_width
 total_width += sum(row_maxwidth)
@@ -214,30 +219,32 @@ def draw_rect(ctx, width, height):
     ctx.rel_line_to(-width, 0)
 
 # Show a frame.
-ctx.move_to(col_margin, row_margin)
-draw_rect(ctx, width - 2 * col_margin,
-          height - 2 * row_margin)
-ctx.set_source_rgb(0.5, 0.5, 1.0)
-ctx.set_line_width(2)
-ctx.stroke()
+if False:
+    ctx.move_to(col_margin, row_margin)
+    draw_rect(ctx, width - 2 * col_margin,
+              height - 2 * row_margin)
+    ctx.set_source_rgb(0.5, 0.5, 1.0)
+    ctx.set_line_width(2)
+    ctx.stroke()
 
 
 # Show column frames.
-next_x = col_margin
-for i in range(0, ncols):
-    col_height = nrow[i] * font_height
-    ctx.move_to(next_x, (height - col_height) / 2.0)
-    draw_rect(ctx, row_maxwidth[i], col_height)
-    next_x += row_maxwidth[i] + gutter_width
-ctx.set_source_rgb(0.5, 0.5, 0.5)
-ctx.set_line_width(2)
-ctx.stroke()
+if False:
+    next_x = col_margin
+    for i in range(0, ncols):
+        col_height = nrow[i] * font_height
+        ctx.move_to(next_x, (height - col_height) / 2.0)
+        draw_rect(ctx, row_maxwidth[i], col_height)
+        next_x += row_maxwidth[i] + gutter_width
+    ctx.set_source_rgb(0.5, 0.5, 0.5)
+    ctx.set_line_width(2)
+    ctx.stroke()
 
 # Show column texts.
 x = col_margin
 for i in range(0, ncols):
     col_height = nrow[i] * font_height
-    y = (height - col_height) / 2.0
+    y = (height - col_height) / 2.0 + font_ascent
     for mid in mat_tiers[i]:
         m = mats[mid]
         m.x = x
@@ -247,6 +254,19 @@ for i in range(0, ncols):
         y += font_height
     x += row_maxwidth[i] + gutter_width
 ctx.set_source_rgb(0.0, 0.0, 0.0)
+ctx.set_line_width(2)
+ctx.stroke()
+
+# Show lines.
+
+for i in range(1, ncols):
+    for mid in mat_tiers[i]:
+        m = mats[mid]
+        for iid in m.inputs:
+            inp = mats[iid]
+            ctx.move_to(m.x, m.y)
+            ctx.line_to(inp.x + inp.width, inp.y)
+ctx.set_source_rgb(0.25, 0.5, 1.0)
 ctx.set_line_width(2)
 ctx.stroke()
 
