@@ -166,10 +166,12 @@ font_face = ctx.get_font_face()
 # Set up column widths and heights.
 col_margin = 0.05
 row_margin = col_margin
+gutter_width = 0.05
 ncols = len(mat_tiers)
 row_maxwidth = [None] * ncols
 nrow = [0] * ncols
 name_height = None
+font_height = None
 for i in range(ncols):
     mat_tier = mat_tiers[i]
     nrow[i] = len(mat_tier)
@@ -178,6 +180,12 @@ for i in range(ncols):
         name = mats[t].name
         extents = ctx.text_extents(name)
         name_height = extents.x_advance
-        width = extents.x_advance
-        max_width = max(max_width, width)
-    row_maxwidth = max_width
+        font_height = extents.height
+        max_width = max(max_width, extents.width)
+    row_maxwidth[i] = max_width
+total_width = 2.0 * col_margin
+total_width += (ncols - 1) * gutter_width
+total_width += sum(row_maxwidth)
+total_height = 2.0 * row_margin
+total_height += max(nrow) * name_height
+print(total_width, total_height, font_height)
