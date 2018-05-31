@@ -256,28 +256,30 @@ ctx.stroke()
 
 # Show lines.
 
-def set_random_color(ctx):
-    rgb = None
-    while True:
-        rgb = [random.random() for _ in range(3)]
-        mag = math.sqrt(sum([c**2 for c in rgb]))
-        if mag <= 0.4 or mag >= 0.85:
-            continue
-        mean = sum(rgb) / len(rgb)
-        sdev = math.sqrt(sum([(c - mean)**2 for c in rgb]))
-        if sdev < 0.25:
-            continue
-        break
-    ctx.set_source_rgb(*rgb)
+colors = [
+    (0.25, 0.25, 0.8),
+    (0.8, 0.8, 0.25),
+    (0.5, 0.5, 0.8),
+    (0.1, 0.8, 0.1),
+    (0.8, 0.25, 0.8),
+    (0.6, 0.9, 0.6),
+    (0.8, 0.25, 0.25),
+    (0.25, 0.8, 0.8),
+    (0.8, 0.5, 0.5) ]
+
+def set_next_color(ctx, c):
+    ctx.set_source_rgb(*(colors[c % len(colors)]))
 
 for i in range(1, ncols):
+    c = 0
     for mid in mat_tiers[i]:
         m = mats[mid]
         for iid in m.inputs:
             inp = mats[iid]
             ctx.move_to(m.x, m.y)
             ctx.line_to(inp.x + inp.width, inp.y)
-        set_random_color(ctx)
+        set_next_color(ctx, c)
         ctx.stroke()
+        c += 1
 
 surface.finish()
