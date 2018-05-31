@@ -146,9 +146,10 @@ class Mat(object):
 
 for t in range(len(tiers)):
     for pm, _, inputs  in tiers[t]:
-        mat = Mat(t, pm["typeID"], pm["typeName"], inputs)
+        tid = pm["typeID"]
+        mat = Mat(t, tid, pm["typeName"], inputs)
         mats[tid] = mat
-        mat_tiers[tier] = tid
+        mat_tiers[t].append(mat.tid)
 
 # Set up Cairo for drawing. Origin is in lower-left corner.
 # width is ASPECT, Height is 1.0.
@@ -157,17 +158,26 @@ width = round(ASPECT * SIDE)
 surface = cairo.SVGSurface("pi-map.svg", width, height)
 ctx = cairo.Context(surface)
 ctx.scale(height, height)
+ctx.select_font_face("sans-serif",
+                     cairo.FontSlant.NORMAL,
+                     cairo.FontWeight.BOLD)
+font_face = ctx.get_font_face()
 
 # Set up column widths and heights.
 col_margin = 0.05
 row_margin = col_margin
-ncols = len(tiers)
-row_maxname = [None] * ncols
+ncols = len(mat_tiers)
+row_maxwidth = [None] * ncols
 nrow = [0] * ncols
+name_height = None
 for i in range(ncols):
-    tier = tiers[i]
-    nrow[i] = len(tier)
-    # XXX For simplicity, we assume that the widest label in
-    # chars will be the widest label in the eventual
-    # rendered font. This may be wrong by a bit.
-    maxname = 0
+    mat_tier = mat_tiers[i]
+    nrow[i] = len(mat_tier)
+    max_width = 0.0
+    for t in mat_tier:
+        name = mats[t].name
+        extents = ctx.text_extents(name)
+        name_height = extents.x_advance
+        width = extents.x_advance
+        max_width = max(max_width, width)
+    row_maxwidth = max_width
