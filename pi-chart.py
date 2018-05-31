@@ -129,6 +129,21 @@ if False:
             print(" ", m[0]["typeName"])
     exit(0)
 
+# Abbreviate names for better readability at
+# tiny sizes.
+def abbrev(name):
+    words = name.split()
+    nwords = len(words)
+    assert nwords > 0
+    if nwords == 1:
+        return name
+    if words[nwords - 1] == "Systems":
+        words[nwords - 1] == "S"
+        nwords -= 1
+    for i in range(nwords - 1):
+        words[i] = words[i][0]
+    return ' '.join(words)
+
 # Accumulate PI materials in a form
 # ready for drawing.
 mats = dict()
@@ -139,7 +154,7 @@ class Mat(object):
     def __init__(self, tier, tid, name, inputs):
         self.tier = tier
         self.tid = tid
-        self.name = name
+        self.name = abbrev(name)
         self.inputs = inputs
         self.x = None
         self.y = None
