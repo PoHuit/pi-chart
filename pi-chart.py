@@ -202,17 +202,36 @@ def draw_rect(ctx, width, height):
 ctx.move_to(col_margin, row_margin)
 draw_rect(ctx, width - 2 * col_margin,
           height - 2 * row_margin)
+ctx.set_source_rgb(0.5, 0.5, 1.0)
+ctx.set_line_width(2)
+ctx.stroke()
 
-# Try out some actual rendering, finally.
+
+# Show column frames.
 next_x = col_margin
 for i in range(0, ncols):
     col_height = nrow[i] * font_height
     ctx.move_to(next_x, (height - col_height) / 2.0)
     draw_rect(ctx, row_maxwidth[i], col_height)
     next_x += row_maxwidth[i] + gutter_width
-
-# Get the rendering out.
 ctx.set_source_rgb(0.5, 0.5, 0.5)
+ctx.set_line_width(2)
+ctx.stroke()
+
+# Show column texts.
+x = col_margin
+for i in range(0, ncols):
+    col_height = nrow[i] * font_height
+    y = (height - col_height) / 2.0
+    for mid in mat_tiers[i]:
+        m = mats[mid]
+        m.x = x
+        m.y = y
+        ctx.move_to(x, y)
+        ctx.show_text(m.name)
+        y += font_height
+    x += row_maxwidth[i] + gutter_width
+ctx.set_source_rgb(0.0, 0.0, 0.0)
 ctx.set_line_width(2)
 ctx.stroke()
 
