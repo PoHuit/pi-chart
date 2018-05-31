@@ -1,5 +1,9 @@
 #!/usr/bin/python3
-# Copyright (c) 2016 Po Huit
+# Copyright © 2018 Po Huit
+# [This program is licensed under the "MIT License"]
+# Please see the file LICENSE in the source
+# distribution of this software for license terms.
+
 # Make an EVE Planetary Interaction chart.
 
 # https://docs.google.com/document/d/1g03tgHtCoXguI7A42DS18Vozx8LFUHoIC6F_AfLYZ9c/edit
