@@ -18,8 +18,7 @@ ASPECT = 11.0 / 8.5
 # Leading ratio for font
 LEADING = 1.8
 
-import sqlite3
-import cairo
+import sqlite3, cairo, math, random
 
 # Set up SQLite3.
 db = sqlite3.connect(eveSDE)
@@ -177,6 +176,7 @@ ctx.select_font_face("sans-serif",
                      cairo.FontSlant.NORMAL,
                      cairo.FontWeight.BOLD)
 font_face = ctx.get_font_face()
+ctx.set_line_width(1.2)
 
 # Set up column widths and heights.
 col_margin = 0.05 * width
@@ -224,7 +224,6 @@ if False:
     draw_rect(ctx, width - 2 * col_margin,
               height - 2 * row_margin)
     ctx.set_source_rgb(0.5, 0.5, 1.0)
-    ctx.set_line_width(2)
     ctx.stroke()
 
 
@@ -237,7 +236,6 @@ if False:
         draw_rect(ctx, row_maxwidth[i], col_height)
         next_x += row_maxwidth[i] + gutter_width
     ctx.set_source_rgb(0.5, 0.5, 0.5)
-    ctx.set_line_width(2)
     ctx.stroke()
 
 # Show column texts.
@@ -254,10 +252,23 @@ for i in range(0, ncols):
         y += font_height
     x += row_maxwidth[i] + gutter_width
 ctx.set_source_rgb(0.0, 0.0, 0.0)
-ctx.set_line_width(2)
 ctx.stroke()
 
 # Show lines.
+
+def set_random_color(ctx):
+    rgb = None
+    while True:
+        rgb = [random.random() for _ in range(3)]
+        mag = math.sqrt(sum([c**2 for c in rgb]))
+        if mag <= 0.4 or mag >= 0.85:
+            continue
+        mean = sum(rgb) / len(rgb)
+        sdev = math.sqrt(sum([(c - mean)**2 for c in rgb]))
+        if sdev < 0.25:
+            continue
+        break
+    ctx.set_source_rgb(*rgb)
 
 for i in range(1, ncols):
     for mid in mat_tiers[i]:
@@ -266,8 +277,7 @@ for i in range(1, ncols):
             inp = mats[iid]
             ctx.move_to(m.x, m.y)
             ctx.line_to(inp.x + inp.width, inp.y)
-ctx.set_source_rgb(0.25, 0.5, 1.0)
-ctx.set_line_width(2)
-ctx.stroke()
+        set_random_color(ctx)
+        ctx.stroke()
 
 surface.finish()
