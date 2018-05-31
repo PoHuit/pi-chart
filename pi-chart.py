@@ -155,37 +155,59 @@ for t in range(len(tiers)):
 # width is ASPECT, Height is 1.0.
 height = SIDE
 width = round(ASPECT * SIDE)
-surface = cairo.SVGSurface("pi-map.svg", width, height)
+surface = cairo.SVGSurface("pi-chart.svg", width, height)
 ctx = cairo.Context(surface)
-ctx.scale(height, height)
 ctx.select_font_face("sans-serif",
                      cairo.FontSlant.NORMAL,
                      cairo.FontWeight.BOLD)
 font_face = ctx.get_font_face()
 
 # Set up column widths and heights.
-col_margin = 0.05
-row_margin = col_margin
-gutter_width = 0.05
+col_margin = 0.05 * width
+row_margin = 0.05 * height
+gutter_width = 0.05 * width
 ncols = len(mat_tiers)
 row_maxwidth = [None] * ncols
-nrow = [0] * ncols
-name_height = None
-font_height = None
+nrow = [None] * ncols
+font_height = 0.0
 for i in range(ncols):
     mat_tier = mat_tiers[i]
-    nrow[i] = len(mat_tier)
     max_width = 0.0
+    acc_height = None
+    nrow[i] = len(mat_tier)
     for t in mat_tier:
         name = mats[t].name
         extents = ctx.text_extents(name)
-        name_height = extents.x_advance
-        font_height = extents.height
+        font_height = max(font_height, extents.height)
         max_width = max(max_width, extents.width)
     row_maxwidth[i] = max_width
+font_height *= 1.2
 total_width = 2.0 * col_margin
 total_width += (ncols - 1) * gutter_width
 total_width += sum(row_maxwidth)
 total_height = 2.0 * row_margin
-total_height += max(nrow) * name_height
-print(total_width, total_height, font_height)
+total_height += max(nrow) * font_height
+maxpect = min(width / total_width, height / total_height)
+print(width, total_width, height, total_height, maxpect)
+ctx.scale(maxpect, maxpect)
+
+def draw_rect(ctx, width, height):
+    ctx.rel_line_to(0, height)
+    ctx.rel_line_to(width, 0)
+    ctx.rel_line_to(0, -height)
+    ctx.rel_line_to(-width, 0)
+
+# Try out some actual rendering, finally.
+col_height = max(nrow) * font_height
+ctx.move_to(col_margin, row_margin)
+draw_rect(ctx, row_maxwidth[0], col_height)
+for i in range(1, ncols):
+    ctx.rel_move_to(row_maxwidth[i-1] + gutter_width,0)
+    draw_rect(ctx, row_maxwidth[i], col_height)
+
+# Get the rendering out.
+ctx.set_source_rgb(0.5, 0.5, 0.5)
+ctx.set_line_width(2)
+ctx.stroke()
+
+surface.finish()
